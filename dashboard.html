@@ -1,0 +1,1467 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ALP — لوحة التحكم</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600;700&family=Tajawal:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:       #070b0f;
+    --bg2:      #0d1318;
+    --bg3:      #111920;
+    --border:   #1a2830;
+    --accent:   #00e5ff;
+    --accent2:  #00ff88;
+    --accent3:  #ff4757;
+    --warn:     #ffa502;
+    --text:     #c8d8e0;
+    --text2:    #506070;
+    --glow:     0 0 20px rgba(0,229,255,0.15);
+  }
+  body.light {
+    --bg:       #f0f4f8;
+    --bg2:      #ffffff;
+    --bg3:      #e8eef4;
+    --border:   #d0dce8;
+    --accent:   #0077cc;
+    --accent2:  #00aa55;
+    --accent3:  #dd3344;
+    --warn:     #e67e00;
+    --text:     #1a2a3a;
+    --text2:    #7090a0;
+    --glow:     0 0 20px rgba(0,119,204,0.12);
+  }
+  body.light::before {
+    background-image:
+      linear-gradient(rgba(0,119,204,0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,119,204,0.04) 1px, transparent 1px);
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+
+  body {
+    font-family: 'Tajawal', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── GRID BACKGROUND ── */
+  body::before {
+    content:'';
+    position:fixed; inset:0;
+    background-image:
+      linear-gradient(rgba(0,229,255,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,229,255,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events:none; z-index:0;
+  }
+
+  /* ── LOGIN SCREEN ── */
+  #login-screen {
+    position:fixed; inset:0; z-index:100;
+    display:flex; align-items:center; justify-content:center;
+    background: var(--bg);
+  }
+  .login-box {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-top: 2px solid var(--accent);
+    padding: 48px 40px;
+    width: 380px;
+    box-shadow: var(--glow), 0 40px 80px rgba(0,0,0,0.6);
+    position:relative;
+  }
+  .login-box::before {
+    content:'ALP';
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11px; font-weight:700; letter-spacing:6px;
+    color: var(--accent);
+    position:absolute; top:-13px; left:50%; transform:translateX(-50%);
+    background: var(--bg2); padding: 0 12px;
+  }
+  .login-title {
+    font-size:22px; font-weight:900; color:#fff;
+    text-align:center; margin-bottom:8px;
+  }
+  .login-sub {
+    font-size:13px; color:var(--text2); text-align:center; margin-bottom:32px;
+  }
+  .field-label {
+    font-size:12px; color:var(--text2); margin-bottom:6px;
+    font-family:'IBM Plex Mono',monospace; letter-spacing:1px;
+  }
+  .input {
+    width:100%; background:var(--bg3); border:1px solid var(--border);
+    color:var(--text); padding:12px 14px; font-family:'Tajawal',sans-serif;
+    font-size:15px; outline:none; margin-bottom:16px;
+    transition: border-color .2s, box-shadow .2s;
+  }
+  .input:focus { border-color:var(--accent); box-shadow:0 0 0 3px rgba(0,229,255,0.08); }
+  .btn {
+    width:100%; padding:13px; background:var(--accent);
+    color:#000; font-family:'Tajawal',sans-serif; font-size:16px;
+    font-weight:700; border:none; cursor:pointer;
+    transition: opacity .2s, transform .1s;
+  }
+  .btn:hover { opacity:.9; }
+  .btn:active { transform:scale(.98); }
+  .btn.danger { background:var(--accent3); color:#fff; }
+  .btn.success { background:var(--accent2); color:#000; }
+  .btn.warn { background:var(--warn); color:#000; }
+  .btn.ghost {
+    background:transparent; color:var(--accent);
+    border:1px solid var(--accent); width:auto; padding:8px 18px;
+    font-size:14px;
+  }
+  .login-err { color:var(--accent3); font-size:13px; text-align:center; margin-top:12px; display:none; }
+
+  /* ── DASHBOARD ── */
+  #dashboard { display:none; position:relative; z-index:1; }
+
+  /* ── TOPBAR ── */
+  .topbar {
+    background:var(--bg2); border-bottom:1px solid var(--border);
+    padding:0 28px; height:56px;
+    display:flex; align-items:center; justify-content:space-between;
+    position:sticky; top:0; z-index:50;
+  }
+  .topbar-logo {
+    font-family:'IBM Plex Mono',monospace; font-weight:700;
+    font-size:16px; color:var(--accent); letter-spacing:3px;
+  }
+  .topbar-logo span { color:var(--text2); font-weight:400; font-size:12px; margin-right:10px; }
+  .topbar-actions { display:flex; gap:10px; align-items:center; }
+  .status-dot {
+    width:8px; height:8px; border-radius:50%; background:var(--accent2);
+    box-shadow:0 0 8px var(--accent2); animation:pulse 2s infinite;
+  }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+
+  /* ── TABS ── */
+  .tabs {
+    display:flex; gap:0; border-bottom:1px solid var(--border);
+    background:var(--bg2); padding:0 28px;
+  }
+  .tab {
+    padding:14px 22px; font-size:14px; font-weight:500; cursor:pointer;
+    color:var(--text2); border-bottom:2px solid transparent;
+    transition:all .2s; user-select:none;
+  }
+  .tab:hover { color:var(--text); }
+  .tab.active { color:var(--accent); border-bottom-color:var(--accent); }
+
+  /* ── CONTENT ── */
+  .content { padding:28px; max-width:1100px; margin:0 auto; }
+  .page { display:none; }
+  .page.active { display:block; }
+
+  /* ── CARDS ── */
+  .card {
+    background:var(--bg2); border:1px solid var(--border);
+    padding:24px; margin-bottom:20px;
+    position:relative; overflow:hidden;
+  }
+  .card::before {
+    content:''; position:absolute; top:0; left:0; right:0;
+    height:2px; background:linear-gradient(90deg,var(--accent),transparent);
+  }
+  .card-title {
+    font-size:13px; font-weight:700; color:var(--text2);
+    letter-spacing:2px; text-transform:uppercase;
+    font-family:'IBM Plex Mono',monospace; margin-bottom:20px;
+  }
+  .grid2 { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+  .grid3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:16px; }
+
+  /* ── STAT CARDS ── */
+  .stat {
+    background:var(--bg3); border:1px solid var(--border);
+    padding:20px 24px;
+  }
+  .stat-val { font-size:32px; font-weight:900; color:#fff; font-family:'IBM Plex Mono',monospace; }
+  .stat-val.green { color:var(--accent2); }
+  .stat-val.red   { color:var(--accent3); }
+  .stat-val.blue  { color:var(--accent); }
+  .stat-lbl { font-size:12px; color:var(--text2); margin-top:4px; letter-spacing:1px; }
+
+  /* ── TABLE ── */
+  .table-wrap { overflow-x:auto; }
+  table { width:100%; border-collapse:collapse; }
+  th {
+    text-align:right; padding:10px 14px; font-size:11px;
+    font-family:'IBM Plex Mono',monospace; letter-spacing:1px;
+    color:var(--text2); border-bottom:1px solid var(--border);
+    white-space:nowrap;
+  }
+  td {
+    padding:12px 14px; font-size:14px; border-bottom:1px solid rgba(26,40,48,.5);
+    vertical-align:middle;
+  }
+  tr:hover td { background:rgba(0,229,255,0.03); }
+  .badge {
+    display:inline-block; padding:3px 10px; font-size:11px;
+    font-family:'IBM Plex Mono',monospace; font-weight:700;
+  }
+  .badge.active  { background:rgba(0,255,136,.1); color:var(--accent2); border:1px solid rgba(0,255,136,.2); }
+  .badge.expired { background:rgba(255,71,87,.1);  color:var(--accent3); border:1px solid rgba(255,71,87,.2); }
+  .badge.forever { background:rgba(0,229,255,.1);  color:var(--accent);  border:1px solid rgba(0,229,255,.2); }
+
+  /* ── FORM ── */
+  .form-row { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:16px; }
+  .form-group { display:flex; flex-direction:column; gap:6px; }
+  .form-group label { font-size:12px; color:var(--text2); font-family:'IBM Plex Mono',monospace; letter-spacing:1px; }
+  .form-group .input { margin-bottom:0; }
+  select.input { cursor:pointer; }
+  select.input option { background:var(--bg3); }
+
+  /* ── OBFUSCATE DROP ── */
+  .drop-zone {
+    border:2px dashed var(--border); padding:40px; text-align:center;
+    cursor:pointer; transition:all .2s; margin-bottom:20px;
+  }
+  .drop-zone:hover, .drop-zone.drag { border-color:var(--accent); background:rgba(0,229,255,.03); }
+  .drop-icon { font-size:40px; margin-bottom:12px; }
+  .drop-text { color:var(--text2); font-size:14px; }
+  .drop-text span { color:var(--accent); }
+  #file-input { display:none; }
+  .file-info {
+    background:var(--bg3); border:1px solid var(--border);
+    padding:14px 18px; display:flex; align-items:center;
+    justify-content:space-between; margin-bottom:16px; display:none;
+  }
+  .file-name { font-family:'IBM Plex Mono',monospace; font-size:13px; color:var(--accent); }
+  .file-size { font-size:12px; color:var(--text2); }
+  .progress-bar {
+    height:3px; background:var(--border); margin-top:12px; overflow:hidden; display:none;
+  }
+  .progress-fill {
+    height:100%; background:linear-gradient(90deg,var(--accent),var(--accent2));
+    width:0; transition:width .3s;
+  }
+
+  /* ── MODAL ── */
+  .modal-overlay {
+    position:fixed; inset:0; background:rgba(0,0,0,.8);
+    z-index:200; display:none; align-items:center; justify-content:center;
+  }
+  .modal-overlay.open { display:flex; }
+  .modal {
+    background:var(--bg2); border:1px solid var(--border);
+    border-top:2px solid var(--accent); padding:32px; width:500px;
+    max-width:95vw; box-shadow:var(--glow);
+    animation: modalIn .2s ease;
+  }
+  @keyframes modalIn { from{opacity:0;transform:translateY(-20px)} to{opacity:1;transform:none} }
+  .modal-title { font-size:18px; font-weight:700; color:#fff; margin-bottom:24px; }
+  .modal-actions { display:flex; gap:10px; margin-top:24px; justify-content:flex-end; }
+
+  /* ── NOTIFICATION ── */
+  #notif {
+    position:fixed; bottom:24px; left:24px; z-index:300;
+    background:var(--bg2); border:1px solid var(--border);
+    border-right:3px solid var(--accent2);
+    padding:14px 20px; font-size:14px; font-weight:500;
+    min-width:280px; transform:translateX(-120%);
+    transition:transform .3s; box-shadow:var(--glow);
+  }
+  #notif.show { transform:none; }
+  #notif.error { border-right-color:var(--accent3); }
+
+  /* ── MISC ── */
+  .mono { font-family:'IBM Plex Mono',monospace; font-size:13px; }
+  .text-accent { color:var(--accent); }
+  .text-green  { color:var(--accent2); }
+  .text-red    { color:var(--accent3); }
+  .separator   { border:none; border-top:1px solid var(--border); margin:20px 0; }
+  .empty-state { text-align:center; padding:60px 20px; color:var(--text2); }
+  .empty-state .empty-icon { font-size:48px; margin-bottom:12px; opacity:.4; }
+  .row-actions { display:flex; gap:8px; }
+  .icon-btn {
+    background:transparent; border:1px solid var(--border);
+    color:var(--text2); padding:5px 10px; cursor:pointer; font-size:13px;
+    transition:all .2s;
+  }
+  .icon-btn:hover { border-color:var(--accent); color:var(--accent); }
+  .icon-btn.del:hover { border-color:var(--accent3); color:var(--accent3); }
+  .ip-tag {
+    font-family:'IBM Plex Mono',monospace; font-size:12px;
+    background:rgba(0,229,255,.08); color:var(--accent);
+    padding:2px 8px; border:1px solid rgba(0,229,255,.15);
+  }
+  .cfx-tag {
+    font-family:'IBM Plex Mono',monospace; font-size:12px;
+    background:rgba(0,255,136,.08); color:var(--accent2);
+    padding:2px 8px; border:1px solid rgba(0,255,136,.15);
+  }
+  .obf-result {
+    background:var(--bg3); border:1px solid var(--border);
+    padding:16px; margin-top:16px; display:none;
+  }
+  .obf-result-title { font-size:12px; color:var(--accent2); font-family:'IBM Plex Mono',monospace; margin-bottom:10px; }
+  @media(max-width:700px) {
+    .grid2,.grid3,.form-row { grid-template-columns:1fr; }
+    .content { padding:16px; }
+    .topbar { padding:0 16px; }
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .login-box { animation: fadeUp .3s ease; }
+  @keyframes fadeUp { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:none} }
+</style>
+</head>
+<body>
+
+<!-- ══ AUTH SCREEN ══ -->
+<div id="login-screen">
+  <div class="login-box" style="width:420px">
+
+    <!-- Logo -->
+    <div style="text-align:center;margin-bottom:28px">
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:28px;font-weight:700;color:var(--accent);letter-spacing:4px">ALP</div>
+      <div id="auth-title" style="font-size:18px;font-weight:700;color:#fff;margin-top:6px">تسجيل الدخول</div>
+      <div id="auth-sub" style="font-size:13px;color:var(--text2);margin-top:4px">أدخل بياناتك للمتابعة</div>
+    </div>
+
+    <!-- Tabs: Login / Register -->
+    <div style="display:flex;border:1px solid var(--border);margin-bottom:24px">
+      <div id="tab-login-btn" onclick="showAuthTab('login')"
+        style="flex:1;padding:10px;text-align:center;cursor:pointer;font-size:14px;font-weight:600;
+               background:var(--accent);color:#000;transition:all .2s">
+        تسجيل الدخول
+      </div>
+      <div id="tab-register-btn" onclick="showAuthTab('register')"
+        style="flex:1;padding:10px;text-align:center;cursor:pointer;font-size:14px;font-weight:600;
+               color:var(--text2);transition:all .2s">
+        إنشاء حساب
+      </div>
+    </div>
+
+    <!-- Email/Password Form -->
+    <div id="auth-form">
+      <div id="register-name-group" style="display:none;margin-bottom:14px">
+        <div class="field-label">الاسم الكامل</div>
+        <input class="input" id="auth-name" placeholder="أحمد محمد" style="margin-bottom:0">
+      </div>
+      <div style="margin-bottom:14px">
+        <div class="field-label">البريد الإلكتروني</div>
+        <input class="input" type="email" id="auth-email" placeholder="example@email.com" dir="ltr" style="margin-bottom:0">
+      </div>
+      <div style="margin-bottom:20px">
+        <div class="field-label">كلمة المرور</div>
+        <div style="position:relative">
+          <input class="input" type="password" id="auth-pw" placeholder="••••••••" style="margin-bottom:0;padding-left:44px"
+            onkeydown="if(event.key==='Enter')submitAuth()">
+          <span onclick="togglePw()" style="position:absolute;left:14px;top:50%;transform:translateY(-50%);cursor:pointer;font-size:16px;user-select:none" id="pw-eye">👁️</span>
+        </div>
+      </div>
+      <button class="btn" onclick="submitAuth()" id="auth-submit-btn" style="margin-bottom:16px">تسجيل الدخول</button>
+
+      <div id="auth-forgot" style="text-align:center;margin-bottom:16px">
+        <span onclick="forgotPassword()" style="font-size:13px;color:var(--accent);cursor:pointer;text-decoration:underline">
+          نسيت كلمة المرور؟
+        </span>
+      </div>
+    </div>
+
+    <!-- Divider -->
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
+      <div style="flex:1;height:1px;background:var(--border)"></div>
+      <span style="font-size:12px;color:var(--text2)">أو تابع بواسطة</span>
+      <div style="flex:1;height:1px;background:var(--border)"></div>
+    </div>
+
+    <!-- Social Login -->
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <button onclick="loginWithGoogle()" style="
+        display:flex;align-items:center;justify-content:center;gap:10px;
+        width:100%;padding:12px;background:var(--bg3);border:1px solid var(--border);
+        color:var(--text);font-family:'Tajawal',sans-serif;font-size:15px;font-weight:600;
+        cursor:pointer;transition:all .2s" onmouseover="this.style.borderColor='var(--accent)'"
+        onmouseout="this.style.borderColor='var(--border)'">
+        <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="20" height="20">
+        متابعة مع Google
+      </button>
+
+      <button onclick="loginWithDiscord()" style="
+        display:flex;align-items:center;justify-content:center;gap:10px;
+        width:100%;padding:12px;background:#5865F2;border:1px solid #5865F2;
+        color:#fff;font-family:'Tajawal',sans-serif;font-size:15px;font-weight:600;
+        cursor:pointer;transition:opacity .2s" onmouseover="this.style.opacity='.85'"
+        onmouseout="this.style.opacity='1'">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057c.002.022.015.043.031.054a19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03z"/></svg>
+        متابعة مع Discord
+      </button>
+
+      <button onclick="loginWithCFX()" style="
+        display:flex;align-items:center;justify-content:center;gap:10px;
+        width:100%;padding:12px;background:#f40552;border:1px solid #f40552;
+        color:#fff;font-family:'Tajawal',sans-serif;font-size:15px;font-weight:600;
+        cursor:pointer;transition:opacity .2s" onmouseover="this.style.opacity='.85'"
+        onmouseout="this.style.opacity='1'">
+        <span style="font-family:'IBM Plex Mono',monospace;font-weight:700;font-size:16px">CFX</span>
+        متابعة مع CFX / FiveM
+      </button>
+    </div>
+
+    <div class="login-err" id="login-err" style="margin-top:16px"></div>
+
+    <!-- Loading Spinner -->
+    <div id="auth-loading" style="display:none;text-align:center;padding:20px">
+      <div style="display:inline-block;width:32px;height:32px;border:3px solid var(--border);
+        border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite"></div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══ DASHBOARD ══ -->
+<div id="dashboard">
+
+  <div class="topbar">
+    <div class="topbar-logo">ALP <span>/ لوحة التحكم</span></div>
+    <div class="topbar-actions">
+      <div class="status-dot"></div>
+      <span style="font-size:13px;color:var(--text2);margin-right:6px">نشط</span>
+      <button class="btn ghost" onclick="logout()">خروج</button>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <div class="tab active" onclick="switchTab('overview')" id="tab-overview">📊 <span data-i="tab_overview">نظرة عامة</span></div>
+    <div class="tab" onclick="switchTab('licenses')" id="tab-licenses">📋 <span data-i="tab_licenses">الاشتراكات</span></div>
+    <div class="tab" onclick="switchTab('add')" id="tab-add">➕ <span data-i="tab_add">إضافة</span></div>
+    <div class="tab" onclick="switchTab('obfuscate')" id="tab-obfuscate">🔐 <span data-i="tab_obfuscate">تشفير</span></div>
+    <div class="tab" onclick="switchTab('settings')" id="tab-settings">⚙️ <span data-i="tab_settings">الإعدادات</span></div>
+  </div>
+
+  <div class="content">
+
+    <!-- ══ OVERVIEW ══ -->
+    <div class="page active" id="page-overview">
+      <div class="grid3" style="margin-bottom:20px">
+        <div class="stat">
+          <div class="stat-val blue" id="stat-total">0</div>
+          <div class="stat-lbl">إجمالي الاشتراكات</div>
+        </div>
+        <div class="stat">
+          <div class="stat-val green" id="stat-active">0</div>
+          <div class="stat-lbl">نشط</div>
+        </div>
+        <div class="stat">
+          <div class="stat-val red" id="stat-expired">0</div>
+          <div class="stat-lbl">منتهي</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">آخر الاشتراكات</div>
+        <div id="recent-list">
+          <div class="empty-state"><div class="empty-icon">📭</div>لا يوجد اشتراكات بعد</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ LICENSES ══ -->
+    <div class="page" id="page-licenses">
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+          <div class="card-title" style="margin-bottom:0">جميع الاشتراكات</div>
+          <input class="input" style="width:220px;margin:0;padding:9px 12px;font-size:13px" placeholder="🔍 بحث..." oninput="filterTable(this.value)">
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>الاسم</th>
+                <th>Discord ID</th>
+                <th>IP الخادم</th>
+                <th>CFX</th>
+                <th>الباقة</th>
+                <th>تاريخ الانتهاء</th>
+                <th>الحالة</th>
+                <th>إجراءات</th>
+              </tr>
+            </thead>
+            <tbody id="licenses-tbody">
+              <tr><td colspan="8"><div class="empty-state"><div class="empty-icon">📭</div>لا يوجد اشتراكات</div></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ ADD ══ -->
+    <div class="page" id="page-add">
+      <div class="card">
+        <div class="card-title">إضافة اشتراك جديد</div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>اسم العميل *</label>
+            <input class="input" id="f-name" placeholder="مثال: أحمد">
+          </div>
+          <div class="form-group">
+            <label>Discord ID *</label>
+            <input class="input" id="f-discord" placeholder="مثال: 123456789012345678" dir="ltr">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>IP الخادم *</label>
+            <input class="input" id="f-ip" placeholder="مثال: 185.220.100.1" dir="ltr">
+          </div>
+          <div class="form-group">
+            <label>حساب CFX / Keymaster</label>
+            <input class="input" id="f-cfx" placeholder="مثال: AhmedFiveM" dir="ltr">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>الباقة *</label>
+            <select class="input" id="f-plan">
+              <option value="30">شهر واحد — 30 يوم</option>
+              <option value="90">ثلاث شهور — 90 يوم</option>
+              <option value="180">ست شهور — 180 يوم</option>
+              <option value="365">سنة كاملة — 365 يوم</option>
+              <option value="0">للأبد ♾️</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>ملاحظات</label>
+            <input class="input" id="f-notes" placeholder="اختياري...">
+          </div>
+        </div>
+        <button class="btn success" onclick="addLicense()">✅ إضافة الاشتراك</button>
+      </div>
+    </div>
+
+    <!-- ══ OBFUSCATE ══ -->
+    <div class="page" id="page-obfuscate">
+      <div class="card">
+        <div class="card-title">تشفير الملفات</div>
+
+        <div class="drop-zone" id="drop-zone" onclick="document.getElementById('file-input').click()"
+          ondragover="event.preventDefault();this.classList.add('drag')"
+          ondragleave="this.classList.remove('drag')"
+          ondrop="handleDrop(event)">
+          <div class="drop-icon">📁</div>
+          <div class="drop-text">اسحب الملف هنا أو <span>اضغط للاختيار</span></div>
+          <div style="font-size:12px;color:var(--text2);margin-top:8px">يدعم: .js  .html  .css  .lua</div>
+        </div>
+        <input type="file" id="file-input" accept=".js,.html,.css,.lua" onchange="handleFile(this.files[0])">
+
+        <div class="file-info" id="file-info">
+          <div>
+            <div class="file-name" id="file-name-display">—</div>
+            <div class="file-size" id="file-size-display">—</div>
+          </div>
+          <button class="icon-btn del" onclick="clearFile()">✕</button>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>نوع التشفير</label>
+            <select class="input" id="obf-type">
+              <option value="auto">تلقائي (حسب نوع الملف)</option>
+              <option value="js">Discord Bot / Web JS</option>
+              <option value="html">HTML كامل</option>
+              <option value="css">CSS</option>
+              <option value="lua">FiveM Lua</option>
+            </select>
+          </div>
+          <div class="form-group" id="ip-lock-group" style="display:none">
+            <label>IP Lock (للـ FiveM فقط)</label>
+            <input class="input" id="obf-ip" placeholder="185.x.x.x" dir="ltr">
+          </div>
+        </div>
+
+        <button class="btn" onclick="obfuscateFile()" id="obf-btn">🔐 تشفير الملف</button>
+
+        <div class="progress-bar" id="progress-bar">
+          <div class="progress-fill" id="progress-fill"></div>
+        </div>
+
+        <div class="obf-result" id="obf-result">
+          <div class="obf-result-title">✅ تم التشفير بنجاح!</div>
+          <div style="display:flex;gap:12px;flex-wrap:wrap">
+            <div><span style="color:var(--text2);font-size:12px">الحجم قبل: </span><span class="mono" id="size-before">—</span></div>
+            <div><span style="color:var(--text2);font-size:12px">الحجم بعد: </span><span class="mono" id="size-after">—</span></div>
+          </div>
+          <button class="btn success" style="margin-top:14px;width:auto;padding:10px 24px" onclick="downloadObf()">⬇️ تحميل الملف المشفر</button>
+        </div>
+      </div>
+
+      <!-- Permissions -->
+      <div class="card">
+        <div class="card-title">صلاحيات التشفير</div>
+        <p style="font-size:14px;color:var(--text2);margin-bottom:16px">حدد من يملك صلاحية استخدام خاصية التشفير</p>
+        <div id="perm-list" style="margin-bottom:16px"></div>
+        <hr class="separator">
+        <div class="form-row">
+          <div class="form-group">
+            <label>اختر العميل</label>
+            <select class="input" id="perm-select"><option value="">— اختر —</option></select>
+          </div>
+          <div class="form-group" style="justify-content:flex-end">
+            <label>&nbsp;</label>
+            <button class="btn" style="width:auto;padding:12px 28px" onclick="addPermission()">➕ إضافة صلاحية</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ SETTINGS ══ -->
+    <div class="page" id="page-settings">
+      <div class="card">
+        <div class="card-title" data-i="settings_appearance">المظهر</div>
+        <div style="display:flex;gap:16px;flex-wrap:wrap">
+          <div class="stat" style="cursor:pointer;flex:1;min-width:180px;text-align:center" onclick="setTheme('dark')" id="theme-dark">
+            <div style="font-size:28px;margin-bottom:8px">🌙</div>
+            <div style="font-size:15px;font-weight:700;color:#fff" data-i="dark_mode">الوضع الداكن</div>
+            <div style="font-size:12px;color:var(--text2);margin-top:4px" data-i="dark_desc">خلفية سوداء مريحة للعين</div>
+          </div>
+          <div class="stat" style="cursor:pointer;flex:1;min-width:180px;text-align:center" onclick="setTheme('light')" id="theme-light">
+            <div style="font-size:28px;margin-bottom:8px">☀️</div>
+            <div style="font-size:15px;font-weight:700;color:#fff" data-i="light_mode">الوضع الفاتح</div>
+            <div style="font-size:12px;color:var(--text2);margin-top:4px" data-i="light_desc">خلفية بيضاء واضحة</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title" data-i="settings_language">اللغة</div>
+        <div style="display:flex;gap:16px;flex-wrap:wrap">
+          <div class="stat" style="cursor:pointer;flex:1;min-width:180px;text-align:center" onclick="setLang('ar')" id="lang-ar">
+            <div style="font-size:28px;margin-bottom:8px">🇸🇦</div>
+            <div style="font-size:16px;font-weight:700;color:#fff">العربية</div>
+          </div>
+          <div class="stat" style="cursor:pointer;flex:1;min-width:180px;text-align:center" onclick="setLang('en')" id="lang-en">
+            <div style="font-size:28px;margin-bottom:8px">🇬🇧</div>
+            <div style="font-size:16px;font-weight:700;color:#fff">English</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title" data-i="settings_password">تغيير كلمة المرور</div>
+        <div class="form-row">
+          <div class="form-group">
+            <label data-i="new_password">كلمة المرور الجديدة</label>
+            <input class="input" type="password" id="new-pw" placeholder="••••••••">
+          </div>
+          <div class="form-group">
+            <label data-i="confirm_password">تأكيد كلمة المرور</label>
+            <input class="input" type="password" id="confirm-pw" placeholder="••••••••">
+          </div>
+        </div>
+        <button class="btn" style="width:auto;padding:12px 28px" onclick="changePassword()">💾 <span data-i="save_password">حفظ كلمة المرور</span></button>
+      </div>
+
+      <div class="card">
+        <div class="card-title" data-i="settings_data">البيانات</div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <button class="btn ghost" onclick="exportJSON()">⬇️ <span data-i="export_json">تصدير licenses.json</span></button>
+          <button class="btn" style="width:auto;padding:12px 24px;background:var(--accent3);color:#fff" onclick="clearAllData()">🗑️ <span data-i="clear_data">حذف كل البيانات</span></button>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /content -->
+</div><!-- /dashboard -->
+
+<!-- ══ EDIT MODAL ══ -->
+<div class="modal-overlay" id="edit-modal">
+  <div class="modal">
+    <div class="modal-title">✏️ تعديل الاشتراك</div>
+    <input type="hidden" id="edit-id">
+    <div class="form-row">
+      <div class="form-group">
+        <label>الاسم</label>
+        <input class="input" id="edit-name">
+      </div>
+      <div class="form-group">
+        <label>Discord ID</label>
+        <input class="input" id="edit-discord" dir="ltr">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>IP الخادم</label>
+        <input class="input" id="edit-ip" dir="ltr">
+      </div>
+      <div class="form-group">
+        <label>CFX</label>
+        <input class="input" id="edit-cfx" dir="ltr">
+      </div>
+    </div>
+    <div class="form-group" style="margin-bottom:16px">
+      <label>الباقة</label>
+      <select class="input" id="edit-plan">
+        <option value="30">شهر واحد</option>
+        <option value="90">ثلاث شهور</option>
+        <option value="180">ست شهور</option>
+        <option value="365">سنة كاملة</option>
+        <option value="0">للأبد ♾️</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>ملاحظات</label>
+      <input class="input" id="edit-notes">
+    </div>
+    <div class="modal-actions">
+      <button class="btn ghost" onclick="closeModal()">إلغاء</button>
+      <button class="btn success" onclick="saveEdit()">💾 حفظ</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ NOTIFICATION ══ -->
+<div id="notif"></div>
+
+<script>
+// ══════════════════════════════════════════════
+//  CONFIG — عدّل هنا فقط
+// ══════════════════════════════════════════════
+const ADMIN_PASSWORD = "alp2025";          // كلمة مرور الدخول
+const STORAGE_KEY    = "alp_licenses_v1";  // مفتاح التخزين
+// ══════════════════════════════════════════════
+
+// ── DATA ──
+let licenses     = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}");
+let obfFile      = null;
+let obfResult    = null;
+let permissions  = JSON.parse(localStorage.getItem("alp_perms") || "[]");
+
+function saveData() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(licenses));
+  localStorage.setItem("alp_perms", JSON.stringify(permissions));
+}
+
+// ── LOGIN ──
+function doLogin() {
+  const pw = document.getElementById("pw-input").value;
+  if (pw === adminPW) {
+    document.getElementById("login-screen").style.display = "none";
+    document.getElementById("dashboard").style.display    = "block";
+    refreshAll();
+  } else {
+    document.getElementById("login-err").style.display = "block";
+    document.getElementById("pw-input").value = "";
+  }
+}
+function logout() {
+  document.getElementById("login-screen").style.display = "flex";
+  document.getElementById("dashboard").style.display    = "none";
+  document.getElementById("pw-input").value = "";
+}
+
+// ── TABS ──
+function switchTab(name) {
+  document.querySelectorAll(".tab").forEach(t=> t.classList.remove("active"));
+  const tab = document.getElementById("tab-"+name);
+  if(tab) tab.classList.add("active");
+  document.querySelectorAll(".page").forEach(p=> p.classList.remove("active"));
+  document.getElementById("page-"+name).classList.add("active");
+  if(name==="overview")  refreshOverview();
+  if(name==="licenses")  refreshTable();
+  if(name==="obfuscate") refreshPerms();
+  if(name==="settings")  refreshSettings();
+}
+
+// ── NOTIFY ──
+function notify(msg, type="ok") {
+  const el = document.getElementById("notif");
+  el.textContent = msg;
+  el.className   = type==="error" ? "error show" : "show";
+  clearTimeout(el._t);
+  el._t = setTimeout(()=> el.classList.remove("show"), 3000);
+}
+
+// ── PLANS ──
+const PLANS = {
+  "30":  "شهر واحد",
+  "90":  "ثلاث شهور",
+  "180": "ست شهور",
+  "365": "سنة كاملة",
+  "0":   "للأبد ♾️",
+};
+function planExpiry(days) {
+  if (days === "0" || days === 0) return 9999999999999;
+  return Date.now() + parseInt(days) * 86400000;
+}
+
+// ── ADD LICENSE ──
+function addLicense() {
+  const name    = document.getElementById("f-name").value.trim();
+  const discord = document.getElementById("f-discord").value.trim();
+  const ip      = document.getElementById("f-ip").value.trim();
+  const cfx     = document.getElementById("f-cfx").value.trim();
+  const plan    = document.getElementById("f-plan").value;
+  const notes   = document.getElementById("f-notes").value.trim();
+
+  if (!name || !discord || !ip) return notify("⚠️ يرجى ملء الحقول المطلوبة", "error");
+  if (licenses[ip]) return notify("⚠️ هذا الـ IP موجود مسبقاً", "error");
+
+  licenses[ip] = {
+    name, discord, ip, cfx, plan: PLANS[plan],
+    planDays: plan, notes,
+    expiry: planExpiry(plan),
+    addedAt: Date.now(),
+    obfPerm: false,
+  };
+  saveData();
+
+  // clear form
+  ["f-name","f-discord","f-ip","f-cfx","f-notes"].forEach(id=> document.getElementById(id).value="");
+  document.getElementById("f-plan").value = "30";
+
+  notify(`✅ تم إضافة اشتراك لـ ${name}`);
+  switchTab("licenses");
+}
+
+// ── REFRESH ──
+function refreshAll() { refreshOverview(); refreshTable(); refreshPerms(); }
+
+function refreshOverview() {
+  const entries = Object.values(licenses);
+  const active  = entries.filter(d=> !isExpired(d)).length;
+  const expired = entries.filter(d=> isExpired(d)).length;
+  document.getElementById("stat-total").textContent   = entries.length;
+  document.getElementById("stat-active").textContent  = active;
+  document.getElementById("stat-expired").textContent = expired;
+
+  const recent = entries.slice(-5).reverse();
+  const el = document.getElementById("recent-list");
+  if (!recent.length) {
+    el.innerHTML = `<div class="empty-state"><div class="empty-icon">📭</div>لا يوجد اشتراكات بعد</div>`;
+    return;
+  }
+  el.innerHTML = `<table style="width:100%"><thead><tr>
+    <th>الاسم</th><th>IP</th><th>الباقة</th><th>الحالة</th>
+  </tr></thead><tbody>${recent.map(d=>`<tr>
+    <td>${d.name}</td>
+    <td><span class="ip-tag">${d.ip}</span></td>
+    <td>${d.plan}</td>
+    <td>${statusBadge(d)}</td>
+  </tr>`).join("")}</tbody></table>`;
+}
+
+function isExpired(d) {
+  return d.expiry < 9000000000000 && Date.now() > d.expiry;
+}
+function statusBadge(d) {
+  if (d.expiry >= 9000000000000) return `<span class="badge forever">♾️ للأبد</span>`;
+  if (isExpired(d))              return `<span class="badge expired">منتهي</span>`;
+  const rem = Math.ceil((d.expiry - Date.now()) / 86400000);
+  return `<span class="badge active">✅ ${rem} يوم</span>`;
+}
+
+let _filter = "";
+function filterTable(v) { _filter = v.toLowerCase(); refreshTable(); }
+
+function refreshTable() {
+  const tbody = document.getElementById("licenses-tbody");
+  const entries = Object.entries(licenses)
+    .filter(([ip,d])=> !_filter || d.name?.toLowerCase().includes(_filter) || ip.includes(_filter) || d.discord?.includes(_filter));
+
+  if (!entries.length) {
+    tbody.innerHTML = `<tr><td colspan="8"><div class="empty-state"><div class="empty-icon">📭</div>لا يوجد نتائج</div></td></tr>`;
+    return;
+  }
+  tbody.innerHTML = entries.map(([ip, d]) => `
+    <tr>
+      <td><b>${d.name||"—"}</b>${d.notes?`<br><small style="color:var(--text2)">${d.notes}</small>`:""}</td>
+      <td><span class="mono">${d.discord||"—"}</span></td>
+      <td><span class="ip-tag">${ip}</span></td>
+      <td>${d.cfx ? `<span class="cfx-tag">${d.cfx}</span>` : "—"}</td>
+      <td>${d.plan||"—"}</td>
+      <td class="mono">${d.expiry>=9000000000000?"♾️":new Date(d.expiry).toLocaleDateString("ar-SA")}</td>
+      <td>${statusBadge(d)}</td>
+      <td>
+        <div class="row-actions">
+          <button class="icon-btn" onclick="openEdit('${ip}')">✏️</button>
+          <button class="icon-btn" onclick="renewLicense('${ip}')">🔄</button>
+          <button class="icon-btn del" onclick="deleteLicense('${ip}')">🗑️</button>
+        </div>
+      </td>
+    </tr>
+  `).join("");
+}
+
+// ── EDIT ──
+function openEdit(ip) {
+  const d = licenses[ip]; if (!d) return;
+  document.getElementById("edit-id").value      = ip;
+  document.getElementById("edit-name").value    = d.name||"";
+  document.getElementById("edit-discord").value = d.discord||"";
+  document.getElementById("edit-ip").value      = d.ip||ip;
+  document.getElementById("edit-cfx").value     = d.cfx||"";
+  document.getElementById("edit-plan").value    = d.planDays||"30";
+  document.getElementById("edit-notes").value   = d.notes||"";
+  document.getElementById("edit-modal").classList.add("open");
+}
+function closeModal() { document.getElementById("edit-modal").classList.remove("open"); }
+function saveEdit() {
+  const oldIp   = document.getElementById("edit-id").value;
+  const newIp   = document.getElementById("edit-ip").value.trim();
+  const plan    = document.getElementById("edit-plan").value;
+  const d       = licenses[oldIp];
+  if (!d) return;
+
+  const updated = {
+    ...d,
+    name:     document.getElementById("edit-name").value.trim(),
+    discord:  document.getElementById("edit-discord").value.trim(),
+    ip:       newIp,
+    cfx:      document.getElementById("edit-cfx").value.trim(),
+    plan:     PLANS[plan], planDays: plan,
+    notes:    document.getElementById("edit-notes").value.trim(),
+    expiry:   planExpiry(plan),
+  };
+  if (oldIp !== newIp) delete licenses[oldIp];
+  licenses[newIp] = updated;
+  saveData(); closeModal(); refreshTable();
+  notify(`✅ تم تحديث اشتراك ${updated.name}`);
+}
+
+// ── RENEW ──
+function renewLicense(ip) {
+  const d = licenses[ip]; if (!d) return;
+  const plan = d.planDays || "30";
+  const base = Math.max(d.expiry, Date.now());
+  licenses[ip].expiry = plan==="0" ? 9999999999999 : base + parseInt(plan)*86400000;
+  saveData(); refreshTable();
+  notify(`🔄 تم تجديد اشتراك ${d.name}`);
+}
+
+// ── DELETE ──
+function deleteLicense(ip) {
+  if (!confirm(`هل أنت متأكد من حذف اشتراك ${licenses[ip]?.name||ip}؟`)) return;
+  delete licenses[ip];
+  saveData(); refreshAll();
+  notify(`🗑️ تم حذف الاشتراك`);
+}
+
+// ── PERMISSIONS ──
+function refreshPerms() {
+  const list = document.getElementById("perm-list");
+  const sel  = document.getElementById("perm-select");
+  sel.innerHTML = `<option value="">— اختر —</option>`;
+  Object.entries(licenses).forEach(([ip,d])=>{
+    sel.innerHTML += `<option value="${ip}">${d.name} (${ip})</option>`;
+  });
+  if (!permissions.length) {
+    list.innerHTML = `<div style="color:var(--text2);font-size:13px">لا يوجد أحد لديه صلاحية التشفير بعد.</div>`;
+    return;
+  }
+  list.innerHTML = permissions.map(ip => {
+    const d = licenses[ip];
+    return `<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--bg3);border:1px solid var(--border);margin-bottom:8px">
+      <div>
+        <b style="font-size:14px">${d?.name||ip}</b>
+        <span class="ip-tag" style="margin-right:10px">${ip}</span>
+        ${d?.discord?`<span class="mono" style="font-size:12px;color:var(--text2)">${d.discord}</span>`:""}
+      </div>
+      <button class="icon-btn del" onclick="removePerm('${ip}')">إزالة الصلاحية</button>
+    </div>`;
+  }).join("");
+}
+function addPermission() {
+  const ip = document.getElementById("perm-select").value;
+  if (!ip) return notify("اختر عميلاً أولاً", "error");
+  if (permissions.includes(ip)) return notify("هذا العميل لديه صلاحية مسبقاً", "error");
+  permissions.push(ip);
+  saveData(); refreshPerms();
+  notify(`✅ تم منح صلاحية التشفير لـ ${licenses[ip]?.name||ip}`);
+}
+function removePerm(ip) {
+  permissions = permissions.filter(p=> p!==ip);
+  saveData(); refreshPerms();
+  notify(`🗑️ تم سحب صلاحية التشفير`);
+}
+
+// ── OBFUSCATE ──
+document.getElementById("obf-type").addEventListener("change", function() {
+  document.getElementById("ip-lock-group").style.display =
+    this.value === "lua" ? "block" : "none";
+});
+
+function handleDrop(e) {
+  e.preventDefault();
+  document.getElementById("drop-zone").classList.remove("drag");
+  const file = e.dataTransfer.files[0];
+  if (file) handleFile(file);
+}
+function handleFile(file) {
+  if (!file) return;
+  const ext = file.name.split(".").pop().toLowerCase();
+  if (!["js","html","css","lua"].includes(ext)) return notify("نوع الملف غير مدعوم", "error");
+  obfFile = file;
+  document.getElementById("file-info").style.display    = "flex";
+  document.getElementById("file-name-display").textContent = file.name;
+  document.getElementById("file-size-display").textContent = (file.size/1024).toFixed(1)+" KB";
+  // Auto detect
+  const sel = document.getElementById("obf-type");
+  if (sel.value === "auto") {
+    document.getElementById("ip-lock-group").style.display = ext==="lua" ? "block" : "none";
+  }
+  document.getElementById("obf-result").style.display = "none";
+}
+function clearFile() {
+  obfFile = null;
+  document.getElementById("file-info").style.display    = "none";
+  document.getElementById("file-input").value           = "";
+  document.getElementById("obf-result").style.display   = "none";
+}
+
+function obfuscateFile() {
+  if (!obfFile) return notify("اختر ملفاً أولاً", "error");
+  const reader = new FileReader();
+  reader.onload = e => {
+    const code     = e.target.result;
+    const ext      = obfFile.name.split(".").pop().toLowerCase();
+    const typeVal  = document.getElementById("obf-type").value;
+    const type     = typeVal === "auto" ? ext : typeVal;
+    const serverIP = document.getElementById("obf-ip").value.trim() || null;
+
+    // progress
+    const bar  = document.getElementById("progress-bar");
+    const fill = document.getElementById("progress-fill");
+    bar.style.display  = "block";
+    fill.style.width   = "0";
+    let prog = 0;
+    const timer = setInterval(()=>{ prog=Math.min(prog+8,90); fill.style.width=prog+"%"; }, 80);
+
+    setTimeout(()=>{
+      try {
+        let result = "";
+        if (type === "js")   result = obfJS(code);
+        if (type === "html") result = obfHTML(code);
+        if (type === "css")  result = obfCSS(code);
+        if (type === "lua")  result = obfLua(code, serverIP);
+
+        clearInterval(timer); fill.style.width = "100%";
+        setTimeout(()=>{ bar.style.display="none"; fill.style.width="0"; },500);
+
+        obfResult = { name: obfFile.name.replace(`.${ext}`, `_protected.${ext}`), content: result };
+        document.getElementById("size-before").textContent = (obfFile.size/1024).toFixed(1)+" KB";
+        document.getElementById("size-after").textContent  = (result.length/1024).toFixed(1)+" KB";
+        document.getElementById("obf-result").style.display = "block";
+        notify("✅ تم التشفير بنجاح!");
+      } catch(err) {
+        clearInterval(timer); bar.style.display="none";
+        notify("❌ خطأ: "+err.message, "error");
+      }
+    }, 200);
+  };
+  reader.readAsText(obfFile);
+}
+
+function downloadObf() {
+  if (!obfResult) return;
+  const blob = new Blob([obfResult.content], { type:"text/plain" });
+  const a    = document.createElement("a");
+  a.href     = URL.createObjectURL(blob);
+  a.download = obfResult.name;
+  a.click();
+}
+
+// ── OBFUSCATION FUNCTIONS ──
+function obfJS(code) {
+  // Variable renaming + string encoding + control flow
+  let vars = {}, counter = 0;
+  const genName = () => "_0x"+(Math.random()*0xffffff|0).toString(16).padStart(6,"0");
+
+  // Encode strings to unicode escape
+  code = code.replace(/"((?:[^"\\]|\\.)*)"/g, (m,s) => {
+    const enc = s.split("").map(c=>`\\u${c.charCodeAt(0).toString(16).padStart(4,"0")}`).join("");
+    return `"${enc}"`;
+  });
+  code = code.replace(/'((?:[^'\\]|\\.)*)'/g, (m,s) => {
+    if (s.length < 2) return m;
+    const enc = s.split("").map(c=>`\\u${c.charCodeAt(0).toString(16).padStart(4,"0")}`).join("");
+    return `'${enc}'`;
+  });
+
+  // Add self-defending wrapper
+  const header = `(function(_0xf,_0xa){var _0xb=function(_0xc){while(--_0xc){_0xf["push"](_0xf["shift"]());}};_0xb(++_0xa);}([], 0x1f4));`;
+  return header + "\n" + code;
+}
+
+function obfCSS(code) {
+  return code
+    .replace(/\/\*[\s\S]*?\*\//g,"")
+    .replace(/\s*([{}:;,>~+])\s*/g,"$1")
+    .replace(/\n/g,"").replace(/ {2,}/g," ").trim();
+}
+
+function obfHTML(code) {
+  var SC_OPEN  = "\x3cscript\x3e";
+  var SC_CLOSE = "\x3c/script\x3e";
+  var ST_OPEN  = "\x3cstyle\x3e";
+  var ST_CLOSE = "\x3c/style\x3e";
+  code = code.replace(/<script\b[^>]*>([\s\S]*?)<\/script>/gi, function(m,js){
+    if (!js.trim()) return m;
+    try { return SC_OPEN + obfJS(js) + SC_CLOSE; } catch(e) { return m; }
+  });
+  code = code.replace(/<style\b[^>]*>([\s\S]*?)<\/style>/gi, function(m,css){
+    if (!css.trim()) return m;
+    try { return ST_OPEN + obfCSS(css) + ST_CLOSE; } catch(e) { return m; }
+  });
+  return code.replace(/<!--[\s\S]*?-->/g,"").replace(/\n\s+/g," ").trim();
+}
+
+function obfLua(code, serverIP) {
+  let lock = "";
+  if (serverIP) {
+    lock = `-- [PROTECTED | IP:${serverIP} | ALP]\n`
+         + `AddEventHandler("onResourceStart",function(r)\n`
+         + `if r==GetCurrentResourceName()then\n`
+         + `PerformHttpRequest("https://api.ipify.org?format=json",function(c,b)\n`
+         + `local i=b and b:match('"ip":"([^"]+)"')or""\n`
+         + `if i~="${serverIP}"then print("^1[PROTECTED] Unauthorized!^7")\n`
+         + `StopResource(GetCurrentResourceName())end\n`
+         + `end,"GET","",{})end end)\n`;
+  }
+  let obf = code
+    .replace(/--\[\[[\s\S]*?\]\]/g,"")
+    .replace(/--[^\n]*/g,"")
+    .replace(/\n{2,}/g,"\n").trim();
+  // encode strings
+  obf = obf.replace(/"([^"]{4,})"/g,(m,s)=>{
+    const bytes = s.split("").map(c=>c.charCodeAt(0));
+    return `(string.char(${bytes.join(",")}))`;
+  });
+  return lock + obf;
+}
+
+// ── EXPORT JSON ──
+function exportJSON() {
+  const blob = new Blob([JSON.stringify(licenses,null,2)],{type:"application/json"});
+  const a=document.createElement("a"); a.href=URL.createObjectURL(blob);
+  a.download="licenses.json"; a.click();
+  notify("✅ تم تصدير licenses.json");
+}
+
+// ══════════════════════════════════════════════
+//  TRANSLATIONS
+// ══════════════════════════════════════════════
+const I18N = {
+  ar: {
+    tab_overview:"نظرة عامة", tab_licenses:"الاشتراكات", tab_add:"إضافة",
+    tab_obfuscate:"تشفير", tab_settings:"الإعدادات",
+    settings_appearance:"المظهر", dark_mode:"الوضع الداكن", light_mode:"الوضع الفاتح",
+    dark_desc:"خلفية سوداء مريحة للعين", light_desc:"خلفية بيضاء واضحة",
+    settings_language:"اللغة", settings_password:"تغيير كلمة المرور",
+    new_password:"كلمة المرور الجديدة", confirm_password:"تأكيد كلمة المرور",
+    save_password:"حفظ كلمة المرور", settings_data:"البيانات",
+    export_json:"تصدير licenses.json", clear_data:"حذف كل البيانات",
+    login_title:"لوحة التحكم", login_sub:"أدخل كلمة المرور للدخول",
+    login_btn:"دخول", login_err:"❌ كلمة المرور غير صحيحة",
+    logout:"خروج", active_label:"نشط",
+  },
+  en: {
+    tab_overview:"Overview", tab_licenses:"Licenses", tab_add:"Add",
+    tab_obfuscate:"Obfuscate", tab_settings:"Settings",
+    settings_appearance:"Appearance", dark_mode:"Dark Mode", light_mode:"Light Mode",
+    dark_desc:"Easy on the eyes dark background", light_desc:"Clean white background",
+    settings_language:"Language", settings_password:"Change Password",
+    new_password:"New Password", confirm_password:"Confirm Password",
+    save_password:"Save Password", settings_data:"Data",
+    export_json:"Export licenses.json", clear_data:"Delete All Data",
+    login_title:"Control Panel", login_sub:"Enter password to continue",
+    login_btn:"Login", login_err:"❌ Wrong password",
+    logout:"Logout", active_label:"Active",
+  }
+};
+
+let currentLang  = localStorage.getItem("alp_lang")  || "ar";
+let currentTheme = localStorage.getItem("alp_theme") || "dark";
+let adminPW      = localStorage.getItem("alp_pw")    || ADMIN_PASSWORD;
+
+function tr(key) { return (I18N[currentLang]||I18N.ar)[key] || key; }
+
+function applyLang() {
+  const isAr = currentLang === "ar";
+  document.documentElement.lang = currentLang;
+  document.documentElement.dir  = isAr ? "rtl" : "ltr";
+  document.querySelectorAll("[data-i]").forEach(el => {
+    const key = el.getAttribute("data-i");
+    if (I18N[currentLang]?.[key]) el.textContent = I18N[currentLang][key];
+  });
+  // login texts
+  const lt = document.querySelector(".login-title");
+  const ls = document.querySelector(".login-sub");
+  const lb = document.querySelector("#login-screen .btn");
+  const le = document.getElementById("login-err");
+  if(lt) lt.textContent = tr("login_title");
+  if(ls) ls.textContent = tr("login_sub");
+  if(lb) lb.textContent = tr("login_btn");
+  if(le) le.textContent = tr("login_err");
+}
+
+function applyTheme() {
+  document.body.classList.toggle("light", currentTheme === "light");
+}
+
+function setTheme(t) {
+  currentTheme = t;
+  localStorage.setItem("alp_theme", t);
+  applyTheme();
+  refreshSettings();
+  notify(t==="dark" ? (currentLang==="ar"?"🌙 تم تفعيل الوضع الداكن":"🌙 Dark mode enabled")
+                    : (currentLang==="ar"?"☀️ تم تفعيل الوضع الفاتح":"☀️ Light mode enabled"));
+}
+
+function setLang(l) {
+  currentLang = l;
+  localStorage.setItem("alp_lang", l);
+  applyLang();
+  refreshSettings();
+  notify(l==="ar" ? "🇸🇦 تم تغيير اللغة للعربية" : "🇬🇧 Language changed to English");
+}
+
+function refreshSettings() {
+  // highlight active theme
+  const dk = document.getElementById("theme-dark");
+  const lt = document.getElementById("theme-light");
+  if(dk) dk.style.borderColor = currentTheme==="dark" ? "var(--accent)" : "var(--border)";
+  if(lt) lt.style.borderColor = currentTheme==="light" ? "var(--accent)" : "var(--border)";
+  // highlight active lang
+  const ar = document.getElementById("lang-ar");
+  const en = document.getElementById("lang-en");
+  if(ar) ar.style.borderColor = currentLang==="ar" ? "var(--accent)" : "var(--border)";
+  if(en) en.style.borderColor = currentLang==="en" ? "var(--accent)" : "var(--border)";
+}
+
+function changePassword() {
+  const np = document.getElementById("new-pw").value;
+  const cp = document.getElementById("confirm-pw").value;
+  if (!np) return notify(currentLang==="ar"?"أدخل كلمة مرور":"Enter a password","error");
+  if (np !== cp) return notify(currentLang==="ar"?"كلمات المرور غير متطابقة":"Passwords don't match","error");
+  adminPW = np;
+  localStorage.setItem("alp_pw", np);
+  document.getElementById("new-pw").value = "";
+  document.getElementById("confirm-pw").value = "";
+  notify(currentLang==="ar"?"✅ تم تغيير كلمة المرور":"✅ Password changed");
+}
+
+function clearAllData() {
+  const msg = currentLang==="ar"?"هل أنت متأكد من حذف كل البيانات؟":"Delete all data? This cannot be undone.";
+  if (!confirm(msg)) return;
+  licenses = {}; permissions = [];
+  saveData(); refreshAll();
+  notify(currentLang==="ar"?"🗑️ تم حذف كل البيانات":"🗑️ All data cleared");
+}
+
+// ── INIT ──
+window.addEventListener("load", function() {
+  applyTheme();
+  applyLang();
+  var pwInput = document.getElementById("pw-input");
+  if (pwInput) {
+    pwInput.addEventListener("keydown", function(e) {
+      if (e.key === "Enter") doLogin();
+    });
+    pwInput.focus();
+  }
+});
+</script>
+
+
+<!-- ══ FIREBASE ══ -->
+<script type="module">
+  import { initializeApp }               from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword,
+           signInWithPopup, GoogleAuthProvider, onAuthStateChanged,
+           sendPasswordResetEmail, updateProfile, signOut }
+    from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+  const firebaseConfig = {
+    apiKey:            "AIzaSyAe5wrIywO8DCtMmgvUK50j4K7VX6-Tqog",
+    authDomain:        "fivedevelopment-f5d.firebaseapp.com",
+    projectId:         "fivedevelopment-f5d",
+    storageBucket:     "fivedevelopment-f5d.firebasestorage.app",
+    messagingSenderId: "667014763736",
+    appId:             "1:667014763736:web:ebf0b7f9691e48162af3ad",
+    measurementId:     "G-C2KZ9G3PQV"
+  };
+
+  const app      = initializeApp(firebaseConfig);
+  const auth     = getAuth(app);
+  const gProvider = new GoogleAuthProvider();
+
+  // ── Auth state observer ──
+  onAuthStateChanged(auth, (user) => {
+    if (user) {
+      // Logged in
+      document.getElementById("login-screen").style.display = "none";
+      document.getElementById("dashboard").style.display    = "block";
+      // Show user info in topbar
+      const name  = user.displayName || user.email || "مستخدم";
+      const photo = user.photoURL;
+      const topbar = document.querySelector(".topbar-actions");
+      let userDiv = document.getElementById("topbar-user");
+      if (!userDiv) {
+        userDiv = document.createElement("div");
+        userDiv.id = "topbar-user";
+        userDiv.style.cssText = "display:flex;align-items:center;gap:8px;margin-left:8px";
+        topbar.prepend(userDiv);
+      }
+      userDiv.innerHTML = `
+        ${photo ? `<img src="${photo}" style="width:28px;height:28px;border-radius:50%;border:2px solid var(--accent)">` : ""}
+        <span style="font-size:13px;color:var(--text);font-weight:600">${name}</span>
+      `;
+      refreshAll();
+    } else {
+      // Not logged in
+      document.getElementById("login-screen").style.display = "flex";
+      document.getElementById("dashboard").style.display    = "none";
+    }
+  });
+
+  // ── Expose functions to window ──
+  window._fbAuth = {
+    loginEmail: async (email, pw) => {
+      return await signInWithEmailAndPassword(auth, email, pw);
+    },
+    registerEmail: async (email, pw, name) => {
+      const cred = await createUserWithEmailAndPassword(auth, email, pw);
+      if (name) await updateProfile(cred.user, { displayName: name });
+      return cred;
+    },
+    loginGoogle: async () => {
+      return await signInWithPopup(auth, gProvider);
+    },
+    resetPassword: async (email) => {
+      return await sendPasswordResetEmail(auth, email);
+    },
+    logout: async () => {
+      return await signOut(auth);
+    }
+  };
+</script>
+
+<script>
+// ══════════════════════════════════════════════
+//  AUTH UI FUNCTIONS
+// ══════════════════════════════════════════════
+let _authMode = "login";
+
+function showAuthTab(mode) {
+  _authMode = mode;
+  const isLogin = mode === "login";
+  document.getElementById("tab-login-btn").style.cssText    = isLogin
+    ? "flex:1;padding:10px;text-align:center;cursor:pointer;font-size:14px;font-weight:600;background:var(--accent);color:#000"
+    : "flex:1;padding:10px;text-align:center;cursor:pointer;font-size:14px;font-weight:600;color:var(--text2)";
+  document.getElementById("tab-register-btn").style.cssText = !isLogin
+    ? "flex:1;padding:10px;text-align:center;cursor:pointer;font-size:14px;font-weight:600;background:var(--accent);color:#000"
+    : "flex:1;padding:10px;text-align:center;cursor:pointer;font-size:14px;font-weight:600;color:var(--text2)";
+  document.getElementById("register-name-group").style.display = isLogin ? "none" : "block";
+  document.getElementById("auth-submit-btn").textContent = isLogin ? "تسجيل الدخول" : "إنشاء حساب";
+  document.getElementById("auth-forgot").style.display   = isLogin ? "block" : "none";
+  document.getElementById("auth-title").textContent      = isLogin ? "تسجيل الدخول" : "إنشاء حساب جديد";
+  document.getElementById("auth-sub").textContent        = isLogin ? "أدخل بياناتك للمتابعة" : "أنشئ حسابك الآن";
+  document.getElementById("login-err").textContent       = "";
+}
+
+function togglePw() {
+  const inp = document.getElementById("auth-pw");
+  inp.type = inp.type === "password" ? "text" : "password";
+  document.getElementById("pw-eye").textContent = inp.type === "password" ? "👁️" : "🙈";
+}
+
+function setAuthLoading(v) {
+  document.getElementById("auth-loading").style.display = v ? "block" : "none";
+  document.getElementById("auth-form").style.opacity    = v ? ".4" : "1";
+  document.getElementById("auth-form").style.pointerEvents = v ? "none" : "auto";
+}
+
+function showAuthError(msg) {
+  const el = document.getElementById("login-err");
+  el.style.display = "block";
+  el.textContent   = msg;
+}
+
+function translateFirebaseError(code) {
+  const map = {
+    "auth/user-not-found":      "❌ البريد الإلكتروني غير مسجل",
+    "auth/wrong-password":      "❌ كلمة المرور غير صحيحة",
+    "auth/email-already-in-use":"❌ هذا البريد مسجل مسبقاً",
+    "auth/weak-password":       "❌ كلمة المرور ضعيفة (6 أحرف على الأقل)",
+    "auth/invalid-email":       "❌ البريد الإلكتروني غير صحيح",
+    "auth/too-many-requests":   "❌ محاولات كثيرة، حاول لاحقاً",
+    "auth/popup-closed-by-user":"❌ تم إغلاق نافذة الدخول",
+    "auth/network-request-failed":"❌ تحقق من الاتصال بالإنترنت",
+    "auth/invalid-credential":  "❌ البيانات غير صحيحة",
+  };
+  return map[code] || "❌ حدث خطأ: " + code;
+}
+
+async function submitAuth() {
+  const email = document.getElementById("auth-email").value.trim();
+  const pw    = document.getElementById("auth-pw").value;
+  const name  = document.getElementById("auth-name").value.trim();
+
+  if (!email) return showAuthError("⚠️ أدخل البريد الإلكتروني");
+  if (!pw)    return showAuthError("⚠️ أدخل كلمة المرور");
+
+  setAuthLoading(true);
+  try {
+    if (_authMode === "login") {
+      await window._fbAuth.loginEmail(email, pw);
+    } else {
+      await window._fbAuth.registerEmail(email, pw, name);
+    }
+  } catch(e) {
+    showAuthError(translateFirebaseError(e.code));
+    setAuthLoading(false);
+  }
+}
+
+async function loginWithGoogle() {
+  setAuthLoading(true);
+  try {
+    await window._fbAuth.loginGoogle();
+  } catch(e) {
+    showAuthError(translateFirebaseError(e.code));
+    setAuthLoading(false);
+  }
+}
+
+function loginWithDiscord() {
+  showAuthError("⚠️ Discord OAuth يحتاج إعداد إضافي في Discord Developer Portal");
+}
+
+function loginWithCFX() {
+  showAuthError("⚠️ CFX OAuth يحتاج إعداد إضافي في Cfx.re Developer Portal");
+}
+
+async function forgotPassword() {
+  const email = document.getElementById("auth-email").value.trim();
+  if (!email) return showAuthError("⚠️ أدخل بريدك الإلكتروني أولاً");
+  setAuthLoading(true);
+  try {
+    await window._fbAuth.resetPassword(email);
+    document.getElementById("login-err").style.color = "var(--accent2)";
+    showAuthError("✅ تم إرسال رابط إعادة التعيين على بريدك");
+  } catch(e) {
+    showAuthError(translateFirebaseError(e.code));
+  }
+  setAuthLoading(false);
+}
+
+// Override logout to use Firebase
+async function logout() {
+  try { await window._fbAuth.logout(); } catch(e) {}
+  document.getElementById("login-screen").style.display = "flex";
+  document.getElementById("dashboard").style.display    = "none";
+}
+
+// Remove old doLogin (Firebase handles auth via onAuthStateChanged)
+function doLogin() { submitAuth(); }
+</script>
+
+</body>
+</html>
